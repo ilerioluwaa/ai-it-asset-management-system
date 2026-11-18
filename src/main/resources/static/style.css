@@ -1,0 +1,65 @@
+
+body {
+    background-color: #f4f6f9;
+    font-family: Arial, sans-serif;
+    color: #212529;
+}
+
+header {
+    background: linear-gradient(135deg, #172554, #2563eb);
+    padding: 24px;
+}
+
+header h3 {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+main {
+    padding-bottom: 40px;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card h4 {
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+#totalAssets {
+    color: #2563eb;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+.table {
+    vertical-align: middle;
+}
+
+.table thead {
+    background-color: #e9eef5;
+}
+
+#message {
+    font-weight: 500;
+}
