@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -77,4 +78,55 @@ class AssetControllerTest {
                                 """))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void updateExistingAssetReturnsUpdatedAsset() throws Exception {
+        Asset asset = new Asset();
+        asset.setName("Dell Latitude 5420");
+        asset.setCategory("Laptop");
+        asset.setSerialNumber("TEST-UPDATE-001");
+        asset.setStatus("Available");
+
+        Asset savedAsset = assetRepository.save(asset);
+
+        String updatedJson = """
+            {
+                "name": "Dell Latitude 5420 Updated",
+                "category": "Laptop",
+                "serialNumber": "TEST-UPDATE-001",
+                "status": "Assigned"
+            }
+            """;
+
+        mockMvc.perform(put("/api/assets/" + savedAsset.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updatedJson))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(savedAsset.getId()))
+            .andExpect(jsonPath("$.name").value("Dell Latitude 5420 Updated"))
+            .andExpect(jsonPath("$.status").value("Assigned"));
+    }
+
+    @Test
+    void deleteExistingAssetReturnsSuccess() throws Exception {
+        Asset asset = new Asset();
+        asset.setName("Test Laptop");
+        asset.setCategory("Laptop");
+        asset.setSerialNumber("DELETE-001");
+        asset.setStatus("Available");
+
+        Asset savedAsset = assetRepository.save(asset);
+
+        mockMvc.perform(delete("/api/assets/" + savedAsset.getId()))
+            .andExpect(status().isOk());
+
+        assertFalse(assetRepository.existsById(savedAsset.getId()));
+    }
+
+    @Test
+    void deleteMissingAssetReturnsNotFound() throws Exception {
+        mockMvc.perform(delete("/api/assets/9999999"))
+            .andExpect(status().isNotFound());
+    }
+
 }

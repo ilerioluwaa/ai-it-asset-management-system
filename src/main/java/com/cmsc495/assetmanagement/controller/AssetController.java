@@ -60,13 +60,17 @@ public class AssetController {
 
     return assetRepository.save(existingAsset);
     }
+
     @DeleteMapping("/{id}")
     public void deleteAsset(@PathVariable Long id) {
-
         if (!assetRepository.existsById(id)) {
-            throw new RuntimeException("Asset not found");
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Asset not found"
+            );
         }
 
         assetRepository.deleteById(id);
     }
+
 }
