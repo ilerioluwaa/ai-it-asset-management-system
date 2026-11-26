@@ -1,33 +1,99 @@
-# Compiled class file
+
+# Maven build artifacts
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Java compiled files
 *.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
 *.jar
 *.war
-*.nar
 *.ear
-*.zip
-*.tar.gz
-*.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
-# Maven build output
-target/
+# Maven temporary files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
 
-# macOS files
+# Eclipse and Spring Tool Suite
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+build/
+
+# Visual Studio Code
+.vscode/
+
+# Operating system files
 .DS_Store
+**/.DS_Store
+Thumbs.db
 
-# Environment variables and secrets
+# Environment variables
 .env
 .env.*
+!.env.example
+
+# Sensitive local configuration
+**/application-local.properties
+**/application-local.yml
+**/application-local.yaml
+**/application-prod.properties
+**/application-prod.yml
+**/application-prod.yaml
+
+# Credentials and certificates
+secrets/
+*.pem
+*.key
+*.p12
+*.jks
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+*.tmp
+*.swp
+*.bak
+
+# Database files and backups
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+backups/
+mysql_data/
+
+# Local AI model files
+models/
+*.gguf
+
+# Generated verification reports
+coverage/
+reports/
+
+# Python temporary files
+__pycache__/
+*.pyc
+.venv/

@@ -1,19 +1,38 @@
 
-name: Spring Boot CI
+name: Spring Boot CI/CD
 
 on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
 
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+
+  # Continuous integration
+
   build-and-test:
+
+    name: Build, Test and Code Coverage
+
     runs-on: ubuntu-latest
 
+    timeout-minutes: 20
+
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -24,8 +43,325 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Make Maven wrapper executable
+      - name: Grant Maven Wrapper permission
         run: chmod +x mvnw
 
-      - name: Build and run tests
+      - name: Verify Java version
+        run: java -version
+
+      - name: Verify Maven version
+        run: ./mvnw --version
+
+      - name: Build and execute automated tests
         run: ./mvnw --batch-mode clean verify
+
+      - name: Upload automated test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automated-test-reports
+          path: target/surefire-reports/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload application package
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-package
+          path: target/*.jar
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          python3 <<'PY'
+          import glob
+          import os
+          import xml.etree.ElementTree as ET
+
+          reports = glob.glob(
+              "target/surefire-reports/TEST-*.xml"
+          )
+
+          tests = 0
+          failures = 0
+          errors = 0
+          skipped = 0
+          duration = 0.0
+
+          for report in reports:
+              root = ET.parse(report).getroot()
+
+              tests += int(root.attrib.get("tests", 0))
+              failures += int(root.attrib.get("failures", 0))
+              errors += int(root.attrib.get("errors", 0))
+              skipped += int(root.attrib.get("skipped", 0))
+              duration += float(root.attrib.get("time", 0))
+
+          passed = tests - failures - errors - skipped
+
+          with open(
+              os.environ["GITHUB_STEP_SUMMARY"],
+              "a"
+          ) as summary:
+
+              summary.write("## Automated Test Results\n\n")
+
+              if not reports:
+                  summary.write(
+                      "No test reports were generated.\n"
+                  )
+              else:
+                  summary.write("| Metric | Result |\n")
+                  summary.write("|---|---:|\n")
+                  summary.write(f"| Total tests | {tests} |\n")
+                  summary.write(f"| Passed | {passed} |\n")
+                  summary.write(f"| Failures | {failures} |\n")
+                  summary.write(f"| Errors | {errors} |\n")
+                  summary.write(f"| Skipped | {skipped} |\n")
+                  summary.write(
+                      f"| Test duration | {duration:.2f}s |\n"
+                  )
+
+              coverage_file = "target/site/jacoco/jacoco.xml"
+
+              if os.path.exists(coverage_file):
+
+                  coverage = ET.parse(
+                      coverage_file
+                  ).getroot()
+
+                  summary.write("\n## Code Coverage\n\n")
+                  summary.write("| Metric | Coverage |\n")
+                  summary.write("|---|---:|\n")
+
+                  for counter in coverage.findall("counter"):
+
+                      metric = counter.attrib["type"]
+
+                      missed = int(
+                          counter.attrib["missed"]
+                      )
+
+                      covered = int(
+                          counter.attrib["covered"]
+                      )
+
+                      total = missed + covered
+
+                      percentage = (
+                          covered / total * 100
+                          if total else 0
+                      )
+
+                      summary.write(
+                          f"| {metric} | {percentage:.2f}% |\n"
+                      )
+              else:
+                  summary.write(
+                      "\nCoverage report unavailable.\n"
+                  )
+          PY
+
+  # Container deployment verification
+
+  deployment-verification:
+
+    name: Docker Deployment and Health Verification
+
+    needs: build-and-test
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    env:
+      DB_NAME: assetmanagement
+      DB_USERNAME: assetadmin
+      DB_PASSWORD: CiDatabaseTest123!
+      MYSQL_ROOT_PASSWORD: CiRootTest123!
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: CiAdminTest123!
+      COOKIE_SECURE: 'false'
+      AI_ENABLED: 'false'
+      PORT: '8080'
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Docker installation
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Validate Docker Compose configuration
+        run: docker compose config --quiet
+
+      - name: Build application container
+        run: docker compose build
+
+      - name: Deploy application and database
+        run: docker compose up -d
+
+      - name: Wait for application health check
+        run: |
+          echo "Waiting for application startup..."
+
+          for attempt in $(seq 1 60); do
+
+            if curl --fail --silent --max-time 5 \
+              http://localhost:8080/actuator/health \
+              -o health-response.json; then
+
+              if python3 -c \
+                'import json; assert json.load(open("health-response.json"))["status"] == "UP"'; then
+
+                echo "Application is healthy."
+                cat health-response.json
+                exit 0
+
+              fi
+            fi
+
+            echo "Attempt $attempt of 60"
+            sleep 5
+
+          done
+
+          echo "Application failed health verification."
+          docker compose logs --no-color
+          exit 1
+
+      - name: Verify login page
+        run: |
+          STATUS=$(curl --silent \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            http://localhost:8080/login)
+
+          echo "Login page HTTP status: $STATUS"
+
+          test "$STATUS" = "200"
+
+      - name: Verify protected asset API
+        run: |
+          STATUS=$(curl --silent \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            http://localhost:8080/api/assets)
+
+          echo "Protected API HTTP status: $STATUS"
+
+          test "$STATUS" = "401"
+
+      - name: Verify protected employee API
+        run: |
+          STATUS=$(curl --silent \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            http://localhost:8080/api/employees)
+
+          echo "Protected employee API status: $STATUS"
+
+          test "$STATUS" = "401"
+
+      - name: Verify protected AI API
+        run: |
+          STATUS=$(curl --silent \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            http://localhost:8080/api/ai/status)
+
+          echo "Protected AI API status: $STATUS"
+
+          test "$STATUS" = "401"
+
+      - name: Generate deployment evidence
+        run: |
+          mkdir -p deployment-evidence
+
+          docker compose ps \
+            > deployment-evidence/container-status.txt
+
+          cp health-response.json \
+            deployment-evidence/health-response.json
+
+          echo "Deployment verification successful." \
+            > deployment-evidence/deployment-result.txt
+
+          echo "Commit: $GITHUB_SHA" \
+            >> deployment-evidence/deployment-result.txt
+
+          echo "Workflow run: $GITHUB_RUN_ID" \
+            >> deployment-evidence/deployment-result.txt
+
+          date -u \
+            >> deployment-evidence/deployment-result.txt
+
+          echo "## Deployment Verification" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| Verification | Result |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "|---|---|" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| Docker build | Passed |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| MySQL-backed application startup | Passed |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| Application health | UP |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| Login page | HTTP 200 |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| Protected asset API | HTTP 401 |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| Protected employee API | HTTP 401 |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+          echo "| Protected AI API | HTTP 401 |" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Collect container logs
+        if: always()
+        run: |
+          mkdir -p deployment-evidence
+
+          docker compose logs --no-color \
+            > deployment-evidence/container-logs.txt 2>&1
+
+          docker compose ps -a \
+            > deployment-evidence/container-status.txt
+
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-evidence
+          path: deployment-evidence/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Stop deployment containers
+        if: always()
+        run: docker compose down --volumes

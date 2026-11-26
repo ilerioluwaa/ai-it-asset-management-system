@@ -1,13 +1,25 @@
 
+/* General application styling */
+
 body {
     background-color: #f4f6f9;
     font-family: Arial, sans-serif;
     color: #212529;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* Application header */
 
 header {
     background: linear-gradient(135deg, #172554, #2563eb);
-    padding: 24px;
+    padding: 24px !important;
 }
 
 header h3 {
@@ -15,11 +27,63 @@ header h3 {
     margin-bottom: 6px;
 }
 
+header p {
+    font-size: 14px;
+    color: #dbeafe;
+}
+
+header .badge {
+    padding: 8px 12px;
+    font-weight: 500;
+}
+
+
+/* Main application layout */
+
 main {
+    flex: 1;
     padding-bottom: 40px;
 }
 
+.app-section {
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* Navigation */
+
+.nav-pills .nav-link {
+    color: #2563eb;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 18px;
+}
+
+.nav-pills .nav-link:hover {
+    background-color: #e9eef5;
+}
+
+.nav-pills .nav-link.active {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+
+/* Cards */
+
 .card {
+    background-color: #ffffff;
     border: none;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -30,15 +94,87 @@ main {
     margin-bottom: 20px;
 }
 
-#totalAssets {
-    color: #2563eb;
+.card h5 {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.card h6 {
+    font-weight: 600;
+}
+
+
+/* Dashboard statistics */
+
+#totalAssets,
+#availableAssets,
+#assignedAssets,
+#maintenanceAssets,
+#retiredAssets,
+#totalEmployees {
     font-size: 36px;
     font-weight: bold;
+    margin-bottom: 0;
 }
+
+#totalAssets {
+    color: #2563eb;
+}
+
+#availableAssets {
+    color: #198754 !important;
+}
+
+#assignedAssets {
+    color: #2563eb !important;
+}
+
+#maintenanceAssets {
+    color: #946200 !important;
+}
+
+#retiredAssets {
+    color: #6c757d !important;
+}
+
+#totalEmployees {
+    color: #172554;
+}
+
+
+/* Forms */
 
 .form-control,
 .form-select {
     border-radius: 8px;
+    min-height: 42px;
+    border: 1px solid #ced4da;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.form-control::placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+
+/* Buttons */
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color 0.15s ease-in-out;
 }
 
 .btn-primary {
@@ -52,14 +188,367 @@ main {
     background-color: #1d4ed8;
 }
 
+.btn-primary:active,
+.btn-primary:focus-visible {
+    background-color: #1d4ed8;
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+}
+
+.btn-outline-primary {
+    color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-outline-primary:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #ffca2c;
+    border-color: #ffca2c;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+}
+
+.btn-sm {
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 3px;
+}
+
+
+/* Inventory and employee tables */
+
 .table {
     vertical-align: middle;
+    margin-bottom: 0;
 }
 
 .table thead {
     background-color: #e9eef5;
 }
 
-#message {
+.table thead th {
+    background-color: #e9eef5;
+    color: #172554;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 14px 12px;
+    border-bottom: 1px solid #dce2ea;
+}
+
+.table tbody td {
+    padding: 12px;
+    overflow-wrap: anywhere;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.table-responsive {
+    border-radius: 8px;
+}
+
+.table td:last-child {
+    min-width: 150px;
+}
+
+.table .badge {
+    font-size: 12px;
     font-weight: 500;
+    padding: 7px 10px;
+    border-radius: 6px;
+}
+
+
+/* Pagination */
+
+#assetPageInfo,
+#employeePageInfo {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+
+/* Notifications */
+
+#notification {
+    font-weight: 500;
+    border-radius: 8px;
+    position: sticky;
+    top: 12px;
+    z-index: 1000;
+    overflow-wrap: anywhere;
+}
+
+.alert {
+    border-radius: 8px;
+}
+
+
+/* Inventory analytics */
+
+#utilizationPercentage {
+    font-size: 36px;
+    font-weight: 700;
+    color: #2563eb !important;
+}
+
+progress {
+    display: block;
+    width: 100%;
+    height: 12px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #e9eef5;
+    color: #2563eb;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #e9eef5;
+    border-radius: 8px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #2563eb;
+    border-radius: 8px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #2563eb;
+    border-radius: 8px;
+}
+
+#categoryBreakdown,
+#departmentBreakdown {
+    margin-top: 16px;
+    overflow-wrap: anywhere;
+}
+
+#categoryBreakdown progress,
+#departmentBreakdown progress {
+    height: 8px;
+    margin-top: 6px;
+}
+
+
+/* Asset assignment dialog */
+
+#assignmentDialog {
+    width: 500px;
+    max-width: calc(100% - 32px);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background-color: #ffffff;
+    color: #212529;
+}
+
+#assignmentDialog::backdrop {
+    background-color: rgba(15, 23, 42, 0.55);
+}
+
+#assignmentDialog h4 {
+    color: #172554;
+    font-weight: 600;
+}
+
+#assignmentAssetName {
+    overflow-wrap: anywhere;
+}
+
+
+/* AI intelligence */
+
+#aiServiceStatus,
+#dashboardAiStatus {
+    font-weight: 600;
+}
+
+#aiModel,
+#aiResultModel {
+    overflow-wrap: anywhere;
+}
+
+#aiLoading {
+    padding: 20px;
+}
+
+#aiLoading .spinner-border {
+    width: 36px;
+    height: 36px;
+}
+
+.ai-recommendation {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #212529;
+    min-height: 100px;
+}
+
+#aiInventoryData {
+    background-color: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+
+#aiInventoryData strong {
+    color: #172554;
+}
+
+#aiResultsPanel h5 {
+    color: #172554;
+    margin-bottom: 12px;
+}
+
+
+/* Application footer */
+
+footer {
+    background-color: #ffffff;
+    font-size: 14px;
+    margin-top: auto;
+}
+
+footer small {
+    font-size: 12px;
+}
+
+
+/* Responsive design */
+
+@media (max-width: 768px) {
+
+    header {
+        padding: 18px !important;
+    }
+
+    header h3 {
+        font-size: 22px;
+    }
+
+    header p {
+        font-size: 13px;
+    }
+
+    main {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .card {
+        padding: 18px !important;
+    }
+
+    .nav-pills .nav-link {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    #totalAssets,
+    #availableAssets,
+    #assignedAssets,
+    #maintenanceAssets,
+    #retiredAssets,
+    #totalEmployees {
+        font-size: 30px;
+    }
+
+    .table {
+        font-size: 13px;
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 10px;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    .ai-recommendation {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    header h3 {
+        font-size: 20px;
+    }
+
+    .nav-pills {
+        flex-direction: column;
+    }
+
+    .nav-pills .nav-link {
+        width: 100%;
+        text-align: left;
+    }
+
+    .card h4 {
+        font-size: 19px;
+    }
+
+    #assignmentDialog {
+        padding: 18px !important;
+    }
+
+    footer {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
 }
